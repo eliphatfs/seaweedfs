@@ -3,8 +3,10 @@ package mount
 import (
 	"bytes"
 	"fmt"
-	"github.com/seaweedfs/seaweedfs/weed/util"
 	"io"
+	"time"
+
+	"github.com/seaweedfs/seaweedfs/weed/util"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 
@@ -47,6 +49,13 @@ func (wfs *WFS) Read(cancel <-chan struct{}, in *fuse.ReadIn, buff []byte) (fuse
 
 	offset := int64(in.Offset)
 	totalRead, err := readDataByFileHandle(buff, fh, offset)
+	retry := 0
+	for err != nil && retry < 7 {
+		time.Sleep(time.Duration(retry*2+1) * time.Second)
+		retry++
+		totalRead, err = readDataByFileHandle(buff, fh, offset)
+	}
+
 	if err != nil {
 		glog.Warningf("file handle read %s %d: %v", fh.FullPath(), totalRead, err)
 		return nil, fuse.EIO
