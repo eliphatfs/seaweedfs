@@ -2,6 +2,7 @@ package mount
 
 import (
 	"github.com/hanwen/go-fuse/v2/fuse"
+	"github.com/seaweedfs/seaweedfs/weed/glog"
 	"github.com/seaweedfs/seaweedfs/weed/pb/filer_pb"
 )
 
@@ -11,6 +12,8 @@ func (wfs *WFS) AcquireHandle(inode uint64, uid, gid uint32) (fileHandle *FileHa
 	if status == fuse.OK {
 		// need to AcquireFileHandle again to ensure correct handle counter
 		fileHandle = wfs.fhmap.AcquireFileHandle(wfs, inode, entry)
+	} else {
+		glog.V(1).Infof("open fh error %v: %v", inode, status)
 	}
 	return
 }

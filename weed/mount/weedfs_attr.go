@@ -1,13 +1,14 @@
 package mount
 
 import (
+	"os"
+	"syscall"
+	"time"
+
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/seaweedfs/seaweedfs/weed/filer"
 	"github.com/seaweedfs/seaweedfs/weed/glog"
 	"github.com/seaweedfs/seaweedfs/weed/pb/filer_pb"
-	"os"
-	"syscall"
-	"time"
 )
 
 func (wfs *WFS) GetAttr(cancel <-chan struct{}, input *fuse.GetAttrIn, out *fuse.AttrOut) (code fuse.Status) {

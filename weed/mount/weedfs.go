@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/seaweedfs/seaweedfs/weed/filer"
+	"github.com/seaweedfs/seaweedfs/weed/glog"
 	"github.com/seaweedfs/seaweedfs/weed/mount/meta_cache"
 	"github.com/seaweedfs/seaweedfs/weed/pb"
 	"github.com/seaweedfs/seaweedfs/weed/pb/filer_pb"
@@ -135,6 +136,7 @@ func (wfs *WFS) Init(server *fuse.Server) {
 func (wfs *WFS) maybeReadEntry(inode uint64) (path util.FullPath, fh *FileHandle, entry *filer_pb.Entry, status fuse.Status) {
 	path, status = wfs.inodeToPath.GetPath(inode)
 	if status != fuse.OK {
+		glog.V(1).Infof("inode to path error %s: %v", path, status)
 		return
 	}
 	var found bool
@@ -174,6 +176,7 @@ func (wfs *WFS) maybeLoadEntry(fullpath util.FullPath) (*filer_pb.Entry, fuse.St
 	meta_cache.EnsureVisited(wfs.metaCache, wfs, util.FullPath(dir))
 	cachedEntry, cacheErr := wfs.metaCache.FindEntry(context.Background(), fullpath)
 	if cacheErr == filer_pb.ErrNotFound {
+		glog.V(1).Infof("maybe load entry ENOENT %s", fullpath)
 		return nil, fuse.ENOENT
 	}
 	return cachedEntry.ToProtoEntry(), fuse.OK

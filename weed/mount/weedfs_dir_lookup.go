@@ -2,6 +2,7 @@ package mount
 
 import (
 	"context"
+	"time"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 
@@ -17,7 +18,6 @@ import (
 // name) pair.
 
 func (wfs *WFS) Lookup(cancel <-chan struct{}, header *fuse.InHeader, name string, out *fuse.EntryOut) (code fuse.Status) {
-
 	if s := checkName(name); s != fuse.OK {
 		return s
 	}
@@ -30,12 +30,23 @@ func (wfs *WFS) Lookup(cancel <-chan struct{}, header *fuse.InHeader, name strin
 	fullFilePath := dirPath.Child(name)
 
 	visitErr := meta_cache.EnsureVisited(wfs.metaCache, wfs, dirPath)
+
+	if visitErr != nil {
+		time.Sleep(5 * time.Second)
+		visitErr = meta_cache.EnsureVisited(wfs.metaCache, wfs, dirPath)
+	}
+	if visitErr != nil {
+		time.Sleep(15 * time.Second)
+		visitErr = meta_cache.EnsureVisited(wfs.metaCache, wfs, dirPath)
+	}
+
 	if visitErr != nil {
 		glog.Errorf("dir Lookup %s: %v", dirPath, visitErr)
 		return fuse.EIO
 	}
 	localEntry, cacheErr := wfs.metaCache.FindEntry(context.Background(), fullFilePath)
 	if cacheErr == filer_pb.ErrNotFound {
+		glog.V(1).Infof("inode ENOENT %s: %v", fullFilePath, cacheErr)
 		return fuse.ENOENT
 	}
 
