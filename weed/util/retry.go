@@ -7,7 +7,7 @@ import (
 	"github.com/seaweedfs/seaweedfs/weed/glog"
 )
 
-var RetryWaitTime = 6 * time.Second
+var RetryWaitTime = 8 * time.Second
 
 func Retry(name string, job func() error) (err error) {
 	waitTime := time.Second
@@ -21,7 +21,7 @@ func Retry(name string, job func() error) (err error) {
 			waitTime = time.Second
 			break
 		}
-		if strings.Contains(err.Error(), "transport") {
+		if strings.Contains(err.Error(), "transport") || strings.Contains(err.Error(), "connection") {
 			hasErr = true
 			glog.V(0).Infof("retry %s: err: %v", name, err)
 		} else {

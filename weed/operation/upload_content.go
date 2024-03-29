@@ -121,7 +121,7 @@ func UploadWithRetry(filerClient filer_pb.FilerClient, assignRequest *filer_pb.A
 			return true
 		})
 	} else {
-		uploadErrList := []string{"transport", "is read only"}
+		uploadErrList := []string{"transport", "is read only", "connection"}
 		err = util.MultiRetry("uploadWithRetry", uploadErrList, doUploadFunc)
 	}
 
